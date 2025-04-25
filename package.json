@@ -1,0 +1,30 @@
+{
+  "name": "advanced-auth",
+  "version": "1.0.0",
+  "main": "server/server.js",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development nodemon server/server.js",
+    "start": "cross-env NODE_ENV=production node server/server.js",
+    "build": "npm install && npm install --prefix client && npm run build --prefix client"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "module",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cross-env": "^7.0.3",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "ioredis": "^5.6.1",
+    "jsonwebtoken": "^9.0.2",
+    "mailtrap": "^4.0.0",
+    "mongoose": "^8.13.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
