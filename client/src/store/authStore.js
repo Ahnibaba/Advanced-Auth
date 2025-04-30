@@ -2,13 +2,14 @@ import { create } from "zustand"
 import axios from "../lib/axios"
 
 
-export const useAuthStore = create((set) => ({
-  user: null,
-  isAuthenticated: false,
+export const useAuthStore = create((set, get) => ({
+  user: JSON.parse(localStorage.getItem("user")),
+  isAuthenticated: JSON.parse(localStorage.getItem("user"))?.isVerified,
   error: null,
   isLoading: false,
   isCheckingAuth: true,
   message: null,
+  refreshError: null,
 
   signup: async (values) => {
     const { name, email, password } = values
@@ -33,6 +34,7 @@ export const useAuthStore = create((set) => ({
         error: null,
         isLoading: false
       })
+      localStorage.setItem("user", JSON.stringify({ user: "Logged in", isVerified: response.data.user.isVerified }))
     } catch (error) {
       set({ error: error.response.data?.error || "Error logging in", isLoading: false })
       throw error
@@ -55,8 +57,39 @@ export const useAuthStore = create((set) => ({
       set({ user: response.data.user, isAuthenticated: true, isLoading: false })
       return response.data
     } catch (error) {
-      set({ error: error.response.data.error || "Error verifying email", isLoading: false })
+      set({ error: error.response.data.message || "Error verifying email", isLoading: false })
       throw error
+    }
+  },
+
+  resendVerificationCode: async () => {
+    try {
+      const user = get().user
+      const response = await axios.post("/auth/resend-verification-code", { email: user?.email })
+      return response.data
+    } catch (error) {
+      console.log(error);
+      throw error
+      
+      
+    }
+  },
+
+  refreshToken: async () => {
+    try {
+      set({ isCheckingAuth: true });
+      const response = await axios.post("/auth/refresh-token");
+      set({ isCheckingAuth: false, refreshError: null });
+      return response.data; // Return the new tokens if needed
+    } catch (error) {
+      console.log("Refresh token error", error);
+      set({ 
+        user: null, 
+        isCheckingAuth: false,
+        refreshError: error.response?.data?.error || "Session expired"
+      });
+      localStorage.removeItem("user");
+      throw error; // Important to re-throw so interceptor can handle it
     }
   },
   
@@ -66,7 +99,11 @@ export const useAuthStore = create((set) => ({
       const response = await axios.get("/auth/check-auth")
       set({ user: response.data.user, isAuthenticated: true, isCheckingAuth: false })
     } catch (error) {
-      set({ isCheckingAuth: false, error: null, isAuthenticated: false })
+      set({ isCheckingAuth: false, error: null })
+      if (error.response?.status !== 401) {
+        // Only set user to null for non-401 errors
+        set({ user: null, isAuthenticated: false });
+      }
     }
   },
   forgotPassword: async (email) => {
@@ -97,3 +134,45 @@ export const useAuthStore = create((set) => ({
     }
   }
 }))
+
+
+
+
+// Axios interceptor for token refresh
+let refreshPromise = null;
+
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // Only handle 401 errors and not retried requests
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      // Skip refresh attempt if this was already a refresh token request
+      if (originalRequest.url === "/auth/refresh-token") {
+        useAuthStore.getState().logout();
+        return Promise.reject(error);
+      }
+
+      try {
+        // If a refresh is already in progress, wait for it
+        refreshPromise = refreshPromise || useAuthStore.getState().refreshToken();
+        await refreshPromise;
+        refreshPromise = null;
+        
+        // Retry the original request with new token
+        return axios(originalRequest);
+      } catch (refreshError) {
+        refreshPromise = null;
+        // If refresh fails, logout and reject
+        useAuthStore.getState().logout();
+        return Promise.reject(refreshError);
+      }
+    }
+    
+    // For non-401 errors or already retried requests
+    return Promise.reject(error);
+  }
+);
