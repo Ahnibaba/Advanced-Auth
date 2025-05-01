@@ -3,8 +3,8 @@ import axios from "../lib/axios"
 
 
 export const useAuthStore = create((set, get) => ({
-  user: JSON.parse(localStorage.getItem("user")),
-  isAuthenticated: JSON.parse(localStorage.getItem("user"))?.isVerified,
+  user: JSON.parse(localStorage.getItem("user")) || null,
+  isAuthenticated: JSON.parse(localStorage.getItem("user"))?.isVerified || false,
   error: null,
   isLoading: false,
   isCheckingAuth: true,
