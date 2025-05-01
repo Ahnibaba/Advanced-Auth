@@ -5,6 +5,8 @@ import { Link, useNavigate } from "react-router-dom"
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter"
 import { User, Mail, Lock, Loader } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
+import ReCAPTCHA from "react-google-recaptcha";
+import toast from "react-hot-toast"
 
 const SignupPage = () => {
 
@@ -13,6 +15,7 @@ const SignupPage = () => {
         email: "",
         password: "",  
     })
+    const [valid, setValid] = useState(false)
 
     const { signup, error, isLoading } = useAuthStore()
 
@@ -28,6 +31,11 @@ const SignupPage = () => {
   const handleSignup = async (e) => {
     e.preventDefault()
 
+    if(!valid) {
+      toast.error("Verify the recaptcha")
+      return
+    }
+
     try {
       await signup(values)
       navigate("/verify-email")
@@ -35,7 +43,12 @@ const SignupPage = () => {
       console.log(error);
       
     }
-  }  
+  } 
+  
+  const onChange = () => {
+    setValid(true)
+  }
+  
   return (
     <motion.div
      initial={{opacity: 0, y: 20}}
@@ -73,6 +86,10 @@ const SignupPage = () => {
               value={values.password}
               onChange={handleOnChange}
             />
+             <ReCAPTCHA
+               sitekey="6LevYiorAAAAABRA5nUVTWbL8UWnVidw6ls9Cc8t"
+                onChange={onChange}
+             />
             {error && <p className="text-red-500 font-semibold mt-2">{error}</p>}
             {/* Password strength meter */}
             <PasswordStrengthMeter password={values.password} />

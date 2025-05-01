@@ -4,6 +4,8 @@ import { Mail, Lock, Loader } from "lucide-react"
 import { Link } from "react-router-dom"
 import Input from "../components/Input"
 import { useAuthStore } from "../store/authStore"
+import ReCAPTCHA from "react-google-recaptcha";
+import toast from "react-hot-toast"
 
 
 
@@ -12,6 +14,7 @@ const LoginPage = () => {
     email: "",
     password: ""
   })
+  const [valid, setValid] = useState(false)
 
   const { isLoading, login, error} = useAuthStore()
 
@@ -24,8 +27,17 @@ const LoginPage = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault()
+    if(!valid) {
+      toast.error("Verify the recaptcha")
+      return
+    }
     await login(values)
   }
+
+  const onChange = () => {
+    setValid(true)
+  }
+
 
   return (
     <motion.div
@@ -58,6 +70,11 @@ const LoginPage = () => {
             value={values.password}
             onChange={handleOnChange}
           />
+
+             <ReCAPTCHA
+               sitekey="6LevYiorAAAAABRA5nUVTWbL8UWnVidw6ls9Cc8t"
+                onChange={onChange}
+             />
 
           <div className="flex items-center mb-6">
             <Link to="/forgot-password" className="text-sm text-green-400 hover:underline">
