@@ -1,12 +1,13 @@
 import { motion } from "framer-motion"
 import Input from "../components/Input"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter"
 import { User, Mail, Lock, Loader } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
 import ReCAPTCHA from "react-google-recaptcha";
 import toast from "react-hot-toast"
+import axios from "../lib/axios"
 
 const SignupPage = () => {
 
@@ -15,11 +16,12 @@ const SignupPage = () => {
         email: "",
         password: "",  
     })
-    const [valid, setValid] = useState(false)
+    const [token, setToken] = useState("")
 
     const { signup, error, isLoading } = useAuthStore()
 
     const navigate = useNavigate()
+    const recaptchaRef = useRef()
 
     const handleOnChange = (e) => {
       const name = e.target.name
@@ -30,24 +32,36 @@ const SignupPage = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault()
-
-    if(!valid) {
-      toast.error("Verify the recaptcha")
-      return
-    }
-
+    
     try {
+      await submitRecaptcha()
       await signup(values)
       navigate("/verify-email")
     } catch (error) {
       console.log(error);
+      toast.error(error.message)
       
     }
   } 
   
-  const onChange = () => {
-    setValid(true)
+  const onChangeRecaptcha = (recaptchaToken) => {
+    setToken(recaptchaToken)
   }
+
+  const submitRecaptcha = async() => {
+    if(token) {
+     const response = await axios.post("/auth/test-recaptcha", { token })
+     console.log(response);
+     
+     setToken("")
+     recaptchaRef.current.reset()
+    } else {
+     throw new Error("Verify you are not a robot")
+    }
+  
+ }
+
+  
   
   return (
     <motion.div
@@ -88,7 +102,8 @@ const SignupPage = () => {
             />
              <ReCAPTCHA
                sitekey="6LevYiorAAAAABRA5nUVTWbL8UWnVidw6ls9Cc8t"
-                onChange={onChange}
+                onChange={onChangeRecaptcha}
+                ref={recaptchaRef}
              />
             {error && <p className="text-red-500 font-semibold mt-2">{error}</p>}
             {/* Password strength meter */}

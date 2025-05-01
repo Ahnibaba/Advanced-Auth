@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Mail, Lock, Loader } from "lucide-react"
 import { Link } from "react-router-dom"
@@ -6,6 +6,7 @@ import Input from "../components/Input"
 import { useAuthStore } from "../store/authStore"
 import ReCAPTCHA from "react-google-recaptcha";
 import toast from "react-hot-toast"
+import axios from "../lib/axios"
 
 
 
@@ -14,7 +15,9 @@ const LoginPage = () => {
     email: "",
     password: ""
   })
-  const [valid, setValid] = useState(false)
+  const [token, setToken] = useState("")
+
+  const recaptchaRef = useRef()
 
   const { isLoading, login, error} = useAuthStore()
 
@@ -26,17 +29,33 @@ const LoginPage = () => {
   }
 
   const handleLogin = async (e) => {
-    e.preventDefault()
-    if(!valid) {
-      toast.error("Verify the recaptcha")
-      return
+    try {
+     e.preventDefault()
+     await submitRecaptcha()
+     login(values)
+    } catch (error) {
+      console.log(error);
+      
+      toast.error(error.message)
     }
-    await login(values)
   }
 
-  const onChange = () => {
-    setValid(true)
+  const onChangeRecaptcha = (recaptchaToken) => {
+    setToken(recaptchaToken)
   }
+  
+  const submitRecaptcha = async() => {
+       if(token) {
+        const response = await axios.post("/auth/test-recaptcha", { token })
+        console.log(response);
+        
+        setToken("")
+        recaptchaRef.current.reset()
+       } else {
+        throw new Error("Verify you are not a robot")
+       }
+     
+    }
 
 
   return (
@@ -71,9 +90,10 @@ const LoginPage = () => {
             onChange={handleOnChange}
           />
 
-             <ReCAPTCHA
-               sitekey="6LevYiorAAAAABRA5nUVTWbL8UWnVidw6ls9Cc8t"
-                onChange={onChange}
+              <ReCAPTCHA
+                sitekey="6LevYiorAAAAABRA5nUVTWbL8UWnVidw6ls9Cc8t"
+                onChange={onChangeRecaptcha}
+                ref={recaptchaRef}
              />
 
           <div className="flex items-center mb-6">
