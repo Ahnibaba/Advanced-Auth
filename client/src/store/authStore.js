@@ -17,6 +17,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const response = await axios.post("/auth/signup", { name, email, password })
       set({ user: response.data.user, isAuthenticated: true, isLoading: false })
+      localStorage.setItem("user", JSON.stringify(response.data.user))
     } catch (error) {
       set({ error: error.response.data.error || "Error signing up", isLoading: false })
       throw error
@@ -34,9 +35,11 @@ export const useAuthStore = create((set, get) => ({
         error: null,
         isLoading: false
       })
-      localStorage.setItem("user", JSON.stringify({ user: "Logged in", isVerified: response.data.user.isVerified }))
+      localStorage.setItem("user", JSON.stringify(response.data.user))
     } catch (error) {
-      set({ error: error.response.data?.error || "Error logging in", isLoading: false })
+      console.log(error);
+      
+      set({ error: error.response?.data?.message || "Error logging in", isLoading: false })
       throw error
     }
   },
@@ -45,6 +48,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       await axios.post("/auth/logout")
       set({ user: null, isAuthenticated: false, error: null, isLoading: false })
+      localStorage.removeItem("user")
     } catch (error) {
       set({ error: "Error logging out", isLoading: false })
       throw error
