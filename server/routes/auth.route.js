@@ -5,8 +5,6 @@ import { protectRoute } from "../middleware/protectRoute.js";
 const router = express.Router()
 
 
-router.get("/check-auth", protectRoute, checkAuth)
-
 router.post("/signup", signup)
 router.post("/login", login)
 router.post("/refresh-token", refreshToken)
@@ -19,6 +17,8 @@ router.post("/forgot-password", forgotPassword)
 router.post("/reset-password/:token", resetPassword)
 
 router.post("/test-recaptcha", testRecaptcha )
+
+router.get("/check-auth", protectRoute, checkAuth)
 
 
 

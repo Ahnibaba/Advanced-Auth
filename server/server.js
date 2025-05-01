@@ -4,9 +4,11 @@ import { connectDB } from "./db/connedtDB.js"
 import authRoutes from "./routes/auth.route.js"
 import cookieParser from "cookie-parser"
 import path from "path"
+import job from "./cron/cron.js"
 
 
 dotenv.config()
+job.start()
 const PORT = process.env.PORT || 5000
 
 
