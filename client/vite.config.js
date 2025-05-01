@@ -11,8 +11,9 @@ export default defineConfig({
   server:{
     proxy:{
       "/api": {
-        target: "http://localhost:5000"
-        //"https://advanced-auth-q82t.onrender.com/"
+        target: "https://advanced-auth-my3q.onrender.com"
+        //"http://localhost:5000"
+        
       }
     }
   }
