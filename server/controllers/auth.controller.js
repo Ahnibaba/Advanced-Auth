@@ -7,6 +7,7 @@ import { generateVerificationToken } from "../utils/generateVerificationToken.js
 import { generateTokens, storeRefreshToken } from "../utils/generateTokens.js"
 import { setCookies } from "../utils/setCookies.js"
 import { sendPasswordResetEmail, sendResetSuccessEmail, sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/emails.js"
+import axios from "axios"
 
 
 
@@ -292,6 +293,33 @@ const refreshToken = async(req, res) => {
   }
 }
 
+
+ const testRecaptcha = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json("Recaptcha token is required");
+    }
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+    const { data, status, statusText } = await axios.post(
+      `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`
+    );
+    if (data.success) {
+      // continue some model save operations
+      console.log("Demo Model saved");
+      return res.json({ data, status, statusText });
+    } else {
+        console.log("Demo Model saved failed");
+      return res.status(400).json({ data, message: "Invalid recapthca" });
+    }
+  } catch (error) {
+    console.log("test-recaptcha error", error);
+    return res.status(400).json("Failed");
+  }
+ }
+
+
 const checkAuth = async(req, res) => {
    try {
     const user = await userModel.findById(req.userId).select("-password")
@@ -307,4 +335,4 @@ const checkAuth = async(req, res) => {
    }
 }
 
-export { signup, login, logout, verifyEmail, forgotPassword, resetPassword, checkAuth, refreshToken, resendVerificationCode }
+export { signup, login, logout, verifyEmail, forgotPassword, resetPassword, checkAuth, refreshToken, resendVerificationCode, testRecaptcha  }
