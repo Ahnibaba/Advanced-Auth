@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import axios from "../lib/axios"
+import { Navigate } from "react-router-dom"
 
 
 export const useAuthStore = create((set, get) => ({
@@ -29,6 +30,8 @@ export const useAuthStore = create((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const response = await axios.post("/auth/login", { email, password })
+      console.log(response.data);
+      
       set({
         isAuthenticated: true,
         user: response.data.user,
@@ -36,6 +39,7 @@ export const useAuthStore = create((set, get) => ({
         isLoading: false
       })
       localStorage.setItem("user", JSON.stringify(response.data.user))
+      return response.data
     } catch (error) {
       console.log(error);
       

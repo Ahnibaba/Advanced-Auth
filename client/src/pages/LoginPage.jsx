@@ -1,7 +1,7 @@
 import { useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Mail, Lock, Loader } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import Input from "../components/Input"
 import { useAuthStore } from "../store/authStore"
 import ReCAPTCHA from "react-google-recaptcha";
@@ -16,6 +16,8 @@ const LoginPage = () => {
     password: ""
   })
   const [token, setToken] = useState("")
+
+  const navigate = useNavigate()
 
   const recaptchaRef = useRef()
 
@@ -32,7 +34,10 @@ const LoginPage = () => {
     try {
      e.preventDefault()
      await submitRecaptcha()
-     login(values)
+     const user = await login(values)
+     if(!user?.user?.isVerified) {
+      navigate("/verify-email")
+     }
     } catch (error) {
       console.log(error);
       
