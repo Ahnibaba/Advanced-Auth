@@ -1,4 +1,4 @@
-import { redis } from "./redis.js"
+//import { redis } from "./redis.js"
 import jwt from "jsonwebtoken"
 
 export const generateTokens = (userId) => {
@@ -17,6 +17,6 @@ export const generateTokens = (userId) => {
     return { accessToken, refreshToken }
   }
   
-  export const storeRefreshToken = async (userId, refreshToken) => {
-      await redis.set(`Advanced-Auth-refresh_token:${userId}`, refreshToken, "EX", 7*24*60*60) // 7days
-  }
+  // export const storeRefreshToken = async (userId, refreshToken) => {
+  //     await redis.set(`Advanced-Auth-refresh_token:${userId}`, refreshToken, "EX", 7*24*60*60) // 7days
+  // }

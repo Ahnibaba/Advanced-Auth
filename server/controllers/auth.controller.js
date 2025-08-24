@@ -2,9 +2,9 @@ import userModel from "../models/user.model.js"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
-import { redis } from "../utils/redis.js"
+//import { redis } from "../utils/redis.js"
 import { generateVerificationToken } from "../utils/generateVerificationToken.js"
-import { generateTokens, storeRefreshToken } from "../utils/generateTokens.js"
+import { generateTokens } from "../utils/generateTokens.js"
 import { setCookies } from "../utils/setCookies.js"
 import { sendPasswordResetEmail, sendResetSuccessEmail, sendVerificationEmail, sendWelcomeEmail } from "../mailtrap/emails.js"
 import axios from "axios"
@@ -42,7 +42,7 @@ const signup = async (req, res) => {
 
     // jwt
     const { accessToken, refreshToken } = generateTokens(user._id)
-    await storeRefreshToken(user._id, refreshToken)
+    //await storeRefreshToken(user._id, refreshToken)
 
     setCookies(res, accessToken, refreshToken)
 
@@ -143,7 +143,7 @@ const login = async (req, res) => {
      }
 
      const { accessToken, refreshToken } = generateTokens(user._id)
-     await storeRefreshToken(user._id, refreshToken)
+     //await storeRefreshToken(user._id, refreshToken)
  
      setCookies(res, accessToken, refreshToken)
 
@@ -168,7 +168,7 @@ const logout = async (req, res) => {
    const refreshToken = req.cookies.refreshToken
    if(refreshToken) {
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
-    await redis.del(`Advanced-Auth-refresh_token:${decoded.userId}`)
+    //await redis.del(`Advanced-Auth-refresh_token:${decoded.userId}`)
    }
 
    res.clearCookie("accessToken")
